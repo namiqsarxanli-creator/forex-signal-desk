@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="az">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Forex Bot Control Center{% endblock %}</title>
+  <meta name="description" content="AI-dəstəkli Forex trading bot — RSI siqnal mühərriki, canlı risk idarəetməsi, n8n xəbər analitikası. n8n + FastAPI ilə qurulub, PAPER rejimində risksiz sınayın.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="{% block og_title %}Forex Trading Bot — Bot Control Center{% endblock %}">
+  <meta property="og:description" content="AI xəbər analitikası, RSI strategiyası və real-vaxt risk idarəetməsi bir panoda.">
+  <link rel="stylesheet" href="/static/dashboard.css">
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+</head>
+<body>
+  <div class="ticker-wrap" id="ticker">
+    <div class="ticker-track" id="tickerTrack">
+      <span class="ticker-item">FX kursları yüklənir…</span>
+    </div>
+  </div>
+
+  <nav class="topnav">
+    <a class="brand" href="/">
+      <span class="brand-mark"></span>
+      Forex Bot <em>Control Center</em>
+    </a>
+    <div class="nav-links">
+      <a href="/" class="{{ 'active' if active_page == 'dashboard' else '' }}">İdarə paneli</a>
+      <a href="/news" class="{{ 'active' if active_page == 'news' else '' }}">Xəbərlər</a>
+      <a href="/about" class="{{ 'active' if active_page == 'about' else '' }}">Necə işləyir</a>
+      <a href="/pricing" class="{{ 'active' if active_page == 'pricing' else '' }}">Qiymətlər</a>
+      <a href="/docs" target="_blank" rel="noopener">API sənədləri ↗</a>
+    </div>
+  </nav>
+
+  <main class="shell">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <span>Forex Trading Bot · n8n + FastAPI + MetaTrader5</span>
+    <span>PAPER rejimi defolt olaraq aktivdir — real pul riskə atılmır.</span>
+  </footer>
+
+  <button id="chatToggle" class="chat-toggle" type="button" aria-label="AI köməkçini aç">💬</button>
+  <div id="chatPanel" class="chat-panel">
+    <div class="chat-head">
+      <span>AI Köməkçi <span class="live-chip"><i></i>Groq</span></span>
+      <button id="chatClose" type="button" aria-label="Bağla">✕</button>
+    </div>
+    <div id="chatMessages" class="chat-messages"></div>
+    <form id="chatForm" class="chat-form">
+      <input id="chatInput" type="text" placeholder="Trade və ya sayt haqqında sual verin…" autocomplete="off" maxlength="2000">
+      <button id="chatSend" class="btn btn-solid" type="submit">Göndər</button>
+    </form>
+  </div>
+
+  <script src="/static/toast.js"></script>
+  <script src="/static/ticker.js"></script>
+  <script src="/static/chat.js"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

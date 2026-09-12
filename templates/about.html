@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}Necə işləyir — Forex Trading Bot{% endblock %}
+{% block content %}
+
+  <header class="page-head">
+    <p class="eyebrow">ARXİTEKTURA</p>
+    <h1>N8n <span class="accent-text">+</span> FastAPI necə birlikdə işləyir</h1>
+    <p class="subtitle">
+      Sistem dörd sərbəst, amma bir-birinə bağlı hissədən ibarətdir: xəbər avtomasiyası n8n-də
+      qurulub, bazar siqnalını FastAPI özü hesablayır, qərar və risk məntiqi hər iki halda Python
+      backend-də saxlanılır, nəticə isə bu saytda göstərilir.
+    </p>
+  </header>
+
+  <section class="arch-grid">
+    <article class="arch-card">
+      <h2>1. Xəbər təhlili workflow-u</h2>
+      <p class="arch-sub">n8n · Schedule + RSS + Groq AI + şəkil + Telegram</p>
+      <ol class="flow-list">
+        <li><b>Schedule Trigger</b> — hər 6 saatdan bir işə düşür.</li>
+        <li><b>RSS Read</b> — federalreserve.gov rəsmi elanlarını çəkir.</li>
+        <li><b>Limit</b> — yalnız son 3 xəbəri götürür.</li>
+        <li><b>Groq LLM (llama-3.1-8b-instant)</b> — sərt JSON formatında xülasə, təsir edən
+          cütlər, təsir dərəcəsi, istiqamət, etibar faizini Azərbaycan dilində qaytarır.</li>
+        <li><b>Code node</b> — JSON-u etibarlı şəkildə oxuyur, mövzuya uyğun şəkil üçün
+          <a href="https://pollinations.ai" target="_blank" rel="noopener">Pollinations.ai</a>
+          (pulsuz, açarsız) linkini qurur.</li>
+        <li><b>POST /news/draft</b> — qaralamanı (mətn + şəkil linki) bazada saxlayır, qısa bir
+          <b>id</b> qaytarır.</li>
+        <li><b>Telegram</b> — şəkil + səliqəli Markdown mətn + <code>/paylas &lt;id&gt;</code>
+          düyməsi kimi göndərilir. Heç nə avtomatik dərc olunmur.</li>
+      </ol>
+    </article>
+
+    <article class="arch-card">
+      <h2>2. Təsdiq və dərc workflow-u</h2>
+      <p class="arch-sub">n8n · Telegram Trigger + Code + HTTP Request</p>
+      <ol class="flow-list">
+        <li><b>Telegram Trigger</b> — admin-in yazdığı mesajları dinləyir.</li>
+        <li><b>Code node</b> — mesaj <code>/paylas &lt;id&gt;</code> və ya
+          <code>/rədd &lt;id&gt;</code> ilə başlayırsa id-ni çıxarır; uzun mətni yenidən yazmağa
+          ehtiyac yoxdur, ona görə səhv/səliqəsiz kopyalama riski aradan qalxır.</li>
+        <li><b>HTTP Request</b> — <code>POST /news/{id}/approve</code> və ya
+          <code>/news/{id}/reject</code> ünvanına göndərir.</li>
+        <li><b>FastAPI</b> — statusu DRAFT-dan PUBLISHED-ə keçirir, bu sayt
+          <a href="/news">Xəbərlər</a> səhifəsində şəkli ilə birlikdə göstərir.</li>
+        <li><b>Təsdiq mesajı</b> — n8n admin-ə "dərc olundu / rədd edildi" deyə geri yazır.</li>
+      </ol>
+    </article>
+
+    <article class="arch-card">
+      <h2>3. RSI strategiya mühərriki</h2>
+      <p class="arch-sub">FastAPI · Frankfurter/ECB qiymətləri + Wilder RSI(14)</p>
+      <ol class="flow-list">
+        <li><b>Qiymət mənbəyi</b> (<code>app/market_data.py</code>) — hər icazəli cüt üçün son ~60
+          günün gündəlik bağlanış qiymətini pulsuz, açar tələb etməyən Frankfurter/ECB API-dən çəkir.</li>
+        <li><b>RSI(14)</b> (<code>app/strategies.py</code>) — klassik Wilder düsturu ilə hesablanır.</li>
+        <li><b>Qərar</b> — RSI 30-dan aşağıdırsa <b>BUY</b>, 70-dən yuxarıdırsa <b>SELL</b>, aralıqda
+          siqnal yoxdur (<code>app/signal_engine.py</code>).</li>
+        <li><b>Avtomatik işə düşmə</b> — backend başlayanda arxa fon tapşırığı hər 15 dəqiqədən bir
+          özü yoxlayır (<code>main.py</code>); istəyə görə eyni işi n8n-dəki
+          <code>3_rsi_signal_trigger_workflow.json</code> ilə Schedule → HTTP Request formasında da
+          tetikləmək mümkündür.</li>
+        <li><b>Nəticə</b> — yaradılan hər siqnal dərhal aşağıdakı risk zəncirindən keçir və dashboard-da
+          canlı görünür; <code>POST /signals/run-now</code> ilə əl ilə də tetiklənə bilər (idarə
+          panelindəki "Siqnalı indi yarat" düyməsi).</li>
+      </ol>
+    </article>
+
+    <article class="arch-card">
+      <h2>4. Risk zənciri və icra</h2>
+      <p class="arch-sub">FastAPI · Pydantic validasiya + risk qaydaları + icra</p>
+      <ol class="flow-list">
+        <li><b>POST /webhook/signal</b> — istənilən mənbədən (n8n, TradingView, strategiya) gələn
+          siqnal qəbul olunur və bazaya yazılır.</li>
+        <li><b>Risk yoxlaması</b> (<code>app/risk.py</code>) — icazəli cüt, maksimum həcm,
+          məcburi stop-loss/take-profit, açıq mövqe limiti yoxlanılır.</li>
+        <li><b>İcra</b> (<code>app/services.py</code>) — <code>PAPER</code> rejimdə simulyasiya
+          doldurulur; <code>DEMO</code> rejimdə (yalnız açıq şəkildə aktiv edilibsə) MetaTrader5
+          demo hesabına göndərilir. Real pul heç vaxt avtomatik risk alınmır.</li>
+        <li><b>Dashboard</b> — açıq mövqələr və son siqnallar canlı göstərilir.</li>
+      </ol>
+    </article>
+  </section>
+
+  <section class="panel safety">
+    <h2>Təhlükəsizlik prinsipləri</h2>
+    <p>Bütün avtomatik qərarların arxasında insan nəzarəti var: xəbər heç vaxt birbaşa dərc olunmur,
+      ticarət siqnalları Python tərəfində sərt risk qaydalarından keçir, sistem defolt olaraq
+      <b>PAPER</b> (simulyasiya) rejimindədir və real order yalnız açıq şəkildə təsdiqlənmiş demo
+      hesaba göndərilə bilər.</p>
+  </section>
+
+{% endblock %}

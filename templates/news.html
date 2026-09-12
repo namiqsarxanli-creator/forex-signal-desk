@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Xəbər lenti — Forex Trading Bot{% endblock %}
+{% block content %}
+
+  <header class="page-head">
+    <p class="eyebrow">N8N XƏBƏR AGENTİ</p>
+    <h1>Xəbər <span class="accent-text">lenti</span></h1>
+    <p class="subtitle">
+      Federal Reserve rəsmi elanları hər 6 saatdan bir oxunur, Groq AI tərəfindən Azərbaycan dilinə
+      təhlil edilir, Telegram-a qaralama kimi göndərilir. Yalnız insan <code>/paylas</code> yazaraq
+      təsdiqlədikdən sonra buraya düşür.
+    </p>
+  </header>
+
+  <section class="pipeline-strip">
+    <div class="pipe-step"><span>1</span>RSS oxunuşu (Fed)</div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step"><span>2</span>Groq AI təhlili (AZ)</div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step"><span>3</span>Telegram qaralaması</div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step"><span>4</span>İnsan təsdiqi /paylas</div>
+    <div class="pipe-arrow">→</div>
+    <div class="pipe-step is-final"><span>5</span>Dərc olunub</div>
+  </section>
+
+  {% if posts %}
+  <section class="news-list">
+    {% for post in posts %}
+    <article class="news-card">
+      {% if post.image_url %}
+      <img class="news-image" src="{{ post.image_url }}" alt="">
+      {% endif %}
+      <div class="news-card-head">
+        <h3>{{ post.title }}</h3>
+        <span class="badge">{{ post.status }}</span>
+      </div>
+      <p>{{ post.summary }}</p>
+      {% if post.instagram_caption %}
+      <div class="ig-caption">
+        <span>Instagram mətni</span>
+        <p>{{ post.instagram_caption }}</p>
+      </div>
+      {% endif %}
+      <div class="news-card-foot">
+        {% if post.source_url %}<a href="{{ post.source_url }}" target="_blank" rel="noopener">Mənbə →</a>{% endif %}
+        <time>{{ post.approved_at.strftime('%d %b %Y, %H:%M') if post.approved_at else '' }}</time>
+      </div>
+    </article>
+    {% endfor %}
+  </section>
+  {% else %}
+  <section class="panel">
+    <p class="empty">Hələ heç bir xəbər təsdiqlənib dərc edilməyib. Telegram-da qaralama mesajının altındakı ID ilə <code>/paylas &lt;id&gt;</code> yazaraq təsdiqləyin.</p>
+  </section>
+  {% endif %}
+
+{% endblock %}

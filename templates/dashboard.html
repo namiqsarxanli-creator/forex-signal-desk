@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% block title %}Bot Control Center — Forex Trading Bot{% endblock %}
+{% block content %}
+
+  <header class="hero">
+    <div class="hero-copy">
+      <p class="eyebrow">FOREX AUTOMATION · n8n + FastAPI</p>
+      <h1>Bot Control <span class="accent-text">Center</span> <span class="live-chip ws-indicator" id="liveDot"><i></i>CANLI</span></h1>
+      <p class="subtitle">
+        n8n workflow-larından gələn siqnallar risk yoxlamasından keçir, {{ trading_mode }} rejimində
+        icra olunur və nəticələr burada canlı izlənir.
+      </p>
+      <div class="hero-actions">
+        <button id="demoBtn" class="btn btn-solid" type="button">🎬 Canlı Demo Başlat</button>
+        <a href="#endpoints" class="btn btn-ghost">İnteqrasiya nöqtələri</a>
+        <a href="/news" class="btn btn-ghost">Xəbər lenti</a>
+      </div>
+    </div>
+    <div class="hero-visual">
+      {% include "_candles.svg" %}
+      <div class="status {{ 'live' if demo_trading_enabled else 'paper' }}">
+        <span class="dot"></span>
+        {{ trading_mode }} MODE
+      </div>
+    </div>
+  </header>
+
+  {% if database_error %}
+  <section class="notice">{{ database_error }}</section>
+  {% endif %}
+
+  <section class="cards">
+    <article class="card" data-live="open_positions">
+      <span>Açıq mövqelər</span>
+      <strong>{{ open_positions }}</strong>
+      <div class="card-bar"><i style="width: {{ [open_positions * 20, 100] | min }}%"></i></div>
+    </article>
+    <article class="card" data-live="signals_today">
+      <span>Qeydə alınan siqnallar</span>
+      <strong>{{ signals_today }}</strong>
+      <div class="card-bar"><i style="width: {{ [signals_today * 10, 100] | min }}%"></i></div>
+    </article>
+    <article class="card">
+      <span>Risk / sövdə</span>
+      <strong>{{ risk_per_trade_pct }}%</strong>
+      <div class="card-bar"><i style="width: {{ (risk_per_trade_pct * 20) | round(0, 'ceil') }}%"></i></div>
+    </article>
+    <article class="card">
+      <span>İcazəli cütlər</span>
+      <strong>{{ allowed_symbols | length }}</strong>
+      <div class="card-bar"><i style="width: {{ (allowed_symbols | length) * 25 }}%"></i></div>
+    </article>
+  </section>
+
+  <section class="panel equity-panel" id="equity">
+    <div class="panel-title">
+      <h2>Equity Əyrisi <span class="live-chip"><i></i>PAPER</span></h2>
+      <span>başlanğıc virtual balans: $10,000</span>
+    </div>
+    <div class="equity-chart-wrap"><svg id="equitySvg" viewBox="0 0 600 200" preserveAspectRatio="none"></svg></div>
+    <div class="equity-meta" id="equityMeta"><span class="empty">Yüklənir…</span></div>
+  </section>
+
+  <section class="panel equity-panel" id="price-chart">
+    <div class="panel-title">
+      <h2>FX Qiymət Qrafiki <span class="live-chip"><i></i>CANLI</span></h2>
+      <select id="priceSymbol" class="symbol-select">
+        {% for s in allowed_symbols %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="equity-chart-wrap"><svg id="priceSvg" viewBox="0 0 600 220" preserveAspectRatio="none"></svg></div>
+    <div class="equity-meta" id="priceMeta">Yüklənir…</div>
+  </section>
+
+  <section class="grid">
+    <article class="panel">
+      <div class="panel-title"><h2>Açıq mövqelər</h2><span>paper / live izlənir</span></div>
+      {% if positions %}
+      <div class="table-wrap"><table><thead><tr><th>Cüt</th><th>İstiqamət</th><th>Həcm</th><th>Giriş</th><th>Açılıb</th></tr></thead>
+        <tbody>{% for position in positions %}<tr><td>{{ position.symbol }}</td><td class="{{ position.order_type | lower }}">{{ position.order_type }}</td><td>{{ as_float(position.volume) }}</td><td>{{ as_float(position.entry_price) }}</td><td>{{ position.created_at.strftime('%d %b %H:%M') if position.created_at else '-' }}</td></tr>{% endfor %}</tbody>
+      </table></div>
+      {% else %}<p class="empty">Hələ açıq mövqe yoxdur.</p>{% endif %}
+    </article>
+
+    <article class="panel">
+      <div class="panel-title"><h2>Son siqnallar</h2><span>risk-yoxlanmış webhook girişi</span></div>
+      <div class="table-wrap"><table><thead><tr><th>Cüt</th><th>İstiqamət</th><th>Mənbə</th><th>Etibar</th></tr></thead>
+        <tbody id="recentSignalsBody">{% for signal in recent_signals %}<tr><td>{{ signal.symbol }}</td><td class="{{ signal.action | lower }}">{{ signal.action }}</td><td>{{ signal.signal_source }}</td><td>{{ as_float(signal.confidence_score) if signal.confidence_score is not none else '-' }}</td></tr>{% else %}<tr><td colspan="4" class="empty">Hələ siqnal qəbul edilməyib.</td></tr>{% endfor %}</tbody>
+      </table></div>
+    </article>
+
+    <article class="panel">
+      <div class="panel-title"><h2>Bağlanmış trade-lər</h2><span>zərər / gəlir nəticəsi</span></div>
+      <div class="table-wrap"><table><thead><tr><th>Cüt</th><th>Çıxış qiyməti</th><th>Nəticə (USD)</th><th>Bağlanıb</th></tr></thead>
+        <tbody id="closedTradesBody">{% for trade in closed_trades %}<tr><td>{{ trade.symbol }}</td><td>{{ as_float(trade.exit_price) }}</td><td class="{{ 'buy' if as_float(trade.profit_loss) >= 0 else 'sell' }}">{{ '%+.2f' | format(as_float(trade.profit_loss)) }}</td><td>{{ trade.closed_at.strftime('%d %b %H:%M') if trade.closed_at else '-' }}</td></tr>{% else %}<tr><td colspan="4" class="empty">Hələ bağlanmış trade yoxdur.</td></tr>{% endfor %}</tbody>
+      </table></div>
+    </article>
+  </section>
+
+  <section class="panel premium-panel" id="premium">
+    <div class="panel-title">
+      <h2>Premium Bazar Analitikası</h2>
+      <span>Peşəkar planda aktivləşir</span>
+    </div>
+    <div class="premium-wrap">
+      <div class="table-wrap blurred">
+        <table>
+          <thead><tr><th>Cüt</th><th>MACD</th><th>Bollinger</th><th>Fibonacci</th><th>4H RSI</th><th>AI etibar</th></tr></thead>
+          <tbody>
+            <tr><td>EURUSD</td><td>0.00042</td><td>Üst bant</td><td>0.618</td><td>62.4</td><td>84%</td></tr>
+            <tr><td>GBPUSD</td><td>-0.00018</td><td>Orta bant</td><td>0.500</td><td>48.1</td><td>77%</td></tr>
+            <tr><td>USDJPY</td><td>0.00091</td><td>Alt bant</td><td>0.786</td><td>33.6</td><td>91%</td></tr>
+            <tr><td>XAUUSD</td><td>0.00027</td><td>Üst bant</td><td>0.382</td><td>58.9</td><td>73%</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="premium-overlay">
+        <span class="premium-lock">🔒</span>
+        <p>MACD, Bollinger Bandları, Fibonacci səviyyələri və çox-zaman çərçivəli RSI
+          yalnız <b>Peşəkar</b> planda aktivləşir.</p>
+        <a href="/pricing#pricing" class="btn btn-solid">Planlara bax →</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel strategy-panel" id="strategy">
+    <div class="panel-title">
+      <h2>Strategiya mühərriki <span class="live-chip"><i></i>RSI(14) · canlı</span></h2>
+      <span>hər 15 dəqiqədə avtomatik, ya da əl ilə</span>
+    </div>
+    <p class="strategy-note">
+      Gündəlik bağlanış qiymətlərindən (ECB/Frankfurter) hesablanan Wilder RSI(14):
+      <b>&lt;30 → BUY</b>, <b>&gt;70 → SELL</b>, aralıqda siqnal yoxdur. Lot ölçüsü sabit deyil —
+      cari PAPER balansının <b>{{ risk_per_trade_pct }}%</b>-i risk edilərək dinamik hesablanır,
+      hər siqnal eyni risk qaydalarından keçir və nəticə aşağıda görünür.
+    </p>
+    <div class="table-wrap">
+      <table id="rsiTable">
+        <thead><tr><th>Cüt</th><th>Son qiymət</th><th>RSI(14)</th><th>Qərar</th></tr></thead>
+        <tbody><tr><td colspan="4" class="empty">RSI hesablanır…</td></tr></tbody>
+      </table>
+    </div>
+    <div class="strategy-actions">
+      <button id="runNowBtn" class="btn btn-solid" type="button">Siqnalı indi yarat</button>
+      <span id="runNowStatus" class="run-status"></span>
+    </div>
+    <div id="runNowResults" class="run-results"></div>
+  </section>
+
+  <section class="panel ai-analysis-panel" id="ai-analysis">
+    <div class="panel-title">
+      <h2>AI Bazar Analitiki <span class="live-chip"><i></i>Groq</span></h2>
+      <button id="analysisRefreshBtn" class="btn btn-ghost" type="button">Yenilə</button>
+    </div>
+    <div id="analysisText" class="ai-analysis-text">
+      <span class="empty">Analiz hazırlanır…</span>
+    </div>
+  </section>
+
+  <section class="panel calculator-panel" id="calculator" data-max-volume="{{ max_volume }}">
+    <div class="panel-title">
+      <h2>Risk Kalkulyatoru</h2>
+      <span>lot ölçüsünü sistemin öz qaydalarına görə hesablayır</span>
+    </div>
+    <p class="strategy-note">
+      Balansınızı və məqbul risk faizini daxil edin — sistemin özü də hər siqnalda məhz bu düsturla
+      (balans × risk% ÷ stop-loss) lot ölçüsünü hesablayır. <code>MAX_VOLUME</code> yalnız mütləq
+      təhlükəsizlik tavanıdır, real ölçü demək deyil.
+    </p>
+    <div class="calc-grid">
+      <label>Balans (USD)<input type="number" id="calcBalance" value="{{ current_balance }}" min="0" step="100"></label>
+      <label>Risk (%)<input type="number" id="calcRisk" value="{{ risk_per_trade_pct }}" min="0.1" max="100" step="0.1"></label>
+      <label>Cüt<select id="calcSymbol">{% for s in allowed_symbols %}<option>{{ s }}</option>{% endfor %}</select></label>
+      <label>Stop-loss (pips)<input type="number" id="calcSl" value="30" min="1" step="1"></label>
+    </div>
+    <div class="calc-result" id="calcResult"></div>
+  </section>
+
+  <section class="panel endpoints" id="endpoints">
+    <h2>İnteqrasiya nöqtələri</h2>
+    <p><code>POST /webhook/signal</code> — n8n/TradingView-dan gələn, risk yoxlamasından keçən ticarət siqnalları.</p>
+    <p><code>POST /paper/quote</code> — PAPER rejimdə simulyasiya qiymət yeniləməsi (stop-loss / take-profit yoxlanışı).</p>
+    <p><code>POST /news/publish</code> — Telegram təsdiqindən sonra n8n xəbər agentinin göndərdiyi paylaşım.</p>
+    <p><code>GET /health</code> — bot statusu.</p>
+    <a href="/docs">API sənədlərini aç →</a>
+  </section>
+
+{% endblock %}
+{% block scripts %}
+<script src="/static/strategy.js"></script>
+<script src="/static/market-analysis.js"></script>
+<script src="/static/price-chart.js"></script>
+<script src="/static/equity-chart.js"></script>
+<script src="/static/risk-calculator.js"></script>
+<script src="/static/live.js"></script>
+<script src="/static/demo.js"></script>
+{% endblock %}

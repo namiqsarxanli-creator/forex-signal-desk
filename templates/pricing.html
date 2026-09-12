@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% block title %}Qiymətlər — Forex Trading Bot{% endblock %}
+{% block content %}
+
+  <header class="hero">
+    <div class="hero-copy">
+      <p class="eyebrow">SIZIN ÜÇÜN QURULUB</p>
+      <h1>Öz Forex botunuzu <span class="accent-text">bu gün</span> işə salın</h1>
+      <p class="subtitle">
+        AI xəbər analitikası, RSI siqnal mühərriki və sərt risk-idarəetməsi bir panoda birləşir.
+        PAPER rejimdə pulsuz sınayın, hazır olanda demo/broker inteqrasiyasına keçin.
+      </p>
+      <div class="hero-actions">
+        <a href="#pricing" class="btn btn-solid">Planlara bax</a>
+        <a href="/about" class="btn btn-ghost">Necə işlədiyini gör</a>
+      </div>
+    </div>
+    <div class="hero-visual">
+      {% include "_candles.svg" %}
+      <div class="status live"><span class="dot"></span>CANLI SİSTEM</div>
+    </div>
+  </header>
+
+  <section class="stat-strip">
+    <div class="stat-chip"><span>Qeydə alınan siqnal</span><strong>{{ stats.signals_total }}</strong></div>
+    <div class="stat-chip"><span>Dərc olunan xəbər analizi</span><strong>{{ stats.published_news }}</strong></div>
+    <div class="stat-chip"><span>Hazırda açıq mövqe</span><strong>{{ stats.open_positions }}</strong></div>
+    <div class="stat-chip"><span>Defolt rejim</span><strong>PAPER</strong></div>
+  </section>
+
+  <section class="section-head">
+    <p class="eyebrow">NİYƏ BU BOT</p>
+    <h2>Bir panelə yığılmış tam avtomasiya</h2>
+    <p>Hər funksiya artıq işlək və canlı test edilib — demo üçün ayrıca inteqrasiya gözləmirsiniz.</p>
+  </section>
+  <section class="feature-grid">
+    <article class="feature-card">
+      <div class="feature-icon">AI</div>
+      <h3>AI xəbər analitikası</h3>
+      <p>n8n + Groq LLM rəsmi maliyyə mənbələrini oxuyur, təsir dərəcəsini və istiqaməti Azərbaycan dilində qiymətləndirir.</p>
+    </article>
+    <article class="feature-card">
+      <div class="feature-icon">R</div>
+      <h3>RSI siqnal mühərriki</h3>
+      <p>Wilder RSI(14) əsasında hər 15 dəqiqədə avtomatik bazar taraması, istənilən vaxt əl ilə də tetiklənə bilər.</p>
+    </article>
+    <article class="feature-card">
+      <div class="feature-icon">✓</div>
+      <h3>Sərt risk zənciri</h3>
+      <p>İcazəli cüt, maksimum həcm, məcburi stop-loss/take-profit — hər siqnal icradan əvvəl yoxlanılır.</p>
+    </article>
+    <article class="feature-card">
+      <div class="feature-icon">👤</div>
+      <h3>İnsan nəzarəti</h3>
+      <p>Xəbər heç vaxt avtomatik dərc olunmur — Telegram-da bir əmrlə (`/paylas`) təsdiq və ya rədd edirsiniz.</p>
+    </article>
+    <article class="feature-card">
+      <div class="feature-icon">⧉</div>
+      <h3>Canlı idarə paneli</h3>
+      <p>Açıq mövqələr, son siqnallar, FX ticker və strategiya nəticələri real vaxtda bir ekranda.</p>
+    </article>
+    <article class="feature-card">
+      <div class="feature-icon">{ }</div>
+      <h3>Açıq API</h3>
+      <p>Hər endpoint sənədləşdirilib (<code>/docs</code>) — öz sisteminizə və ya TradingView-a asanlıqla qoşulur.</p>
+    </article>
+  </section>
+
+  <section class="section-head" id="pricing">
+    <p class="eyebrow">PLANLAR</p>
+    <h2>Sadə, şəffaf qiymətləndirmə</h2>
+    <p>İstənilən planda PAPER rejimi pulsuzdur — real riskə yalnız siz, açıq şəkildə qərar verəndə keçilir.</p>
+  </section>
+  <section class="pricing-grid">
+    <article class="price-card">
+      <h3>Başlanğıc</h3>
+      <p class="price">0 ₼ <small>/ ay</small></p>
+      <p class="price-note">Sınamaq və öyrənmək üçün</p>
+      <ul class="price-list">
+        <li><i>✓</i> PAPER (simulyasiya) rejimi</li>
+        <li><i>✓</i> 3 valyuta cütü</li>
+        <li><i>✓</i> RSI siqnal paneli</li>
+        <li><i>✓</i> İdarə paneli + API sənədləri</li>
+      </ul>
+      <a href="/" class="btn btn-ghost btn-block">Pulsuz başla</a>
+    </article>
+    <article class="price-card featured">
+      <span class="price-tag">Ən çox seçilən</span>
+      <h3>Peşəkar</h3>
+      <p class="price">49 ₼ <small>/ ay</small></p>
+      <p class="price-note">Aktiv izləmə istəyənlər üçün</p>
+      <ul class="price-list">
+        <li><i>✓</i> Bütün Başlanğıc imkanları</li>
+        <li><i>✓</i> Limitsiz valyuta cütü</li>
+        <li><i>✓</i> AI xəbər analitikası + Telegram axını</li>
+        <li><i>✓</i> MetaTrader5 DEMO hesab inteqrasiyası</li>
+        <li><i>✓</i> Prioritet dəstək</li>
+      </ul>
+      <a href="mailto:info@forexbot.az?subject=Peşəkar%20plan" class="btn btn-solid btn-block">Əlaqə saxla</a>
+    </article>
+    <article class="price-card">
+      <h3>Biznes</h3>
+      <p class="price">Fərdi <small>qiymət</small></p>
+      <p class="price-note">Komanda və broker inteqrasiyası üçün</p>
+      <ul class="price-list">
+        <li><i>✓</i> Bütün Peşəkar imkanları</li>
+        <li><i>✓</i> Xüsusi strategiya/risk parametrləri</li>
+        <li><i>✓</i> Real broker hesabı inteqrasiyası*</li>
+        <li><i>✓</i> Xüsusi n8n workflow-ları</li>
+        <li><i>✓</i> SLA və nəzarətli onboarding</li>
+      </ul>
+      <a href="mailto:info@forexbot.az?subject=Biznes%20plan" class="btn btn-ghost btn-block">Təklif istə</a>
+    </article>
+  </section>
+
+  <section class="section-head">
+    <p class="eyebrow">BROKER SEÇİMİ</p>
+    <h2>Tövsiyə olunan brokerlər</h2>
+    <p>Bot hər brokerlə (MT5 dəstəkləyən) işləyə bilər. Aşağıdakılar şəxsi maliyyə məsləhəti
+      deyil — Azərbaycanlı istifadəçilər arasında tanınan platformaların sadə siyahısıdır.
+      Broker seçərkən tənzimləmə statusunu, spred/komissiyanı və çəkilmə şərtlərini özünüz yoxlayın.</p>
+  </section>
+  <section class="feature-grid">
+    <article class="feature-card">
+      <div class="feature-icon">AZ</div>
+      <h3>Azərbaycan dilli dəstək</h3>
+      <p><b>IFC Markets</b> və <b>InstaForex</b> — regionda geniş yayılmış, Azərbaycan dilində müştəri
+        dəstəyi və material təklif edən beynəlxalq brokerlər.</p>
+    </article>
+    <article class="feature-card">
+      <div class="feature-icon">EU</div>
+      <h3>Tənzimlənmiş, tanınmış</h3>
+      <p><b>FxPro</b> (bu layihənin demo inteqrasiyasında istifadə olunan broker) və <b>XM</b> —
+        çoxsaylı yurisdiksiyada (o cümlədən FCA/CySEC) tənzimlənən qlobal brokerlər.</p>
+    </article>
+    <article class="feature-card">
+      <div class="feature-icon">$</div>
+      <h3>Aşağı minimum depozit</h3>
+      <p><b>Exness</b> və <b>RoboForex</b> — kiçik başlanğıc kapitalı ilə sınamaq istəyənlər üçün
+        çevik hesab tipləri və aşağı minimum depozit təklif edir.</p>
+    </article>
+  </section>
+  <p class="price-note" style="margin: -4px 0 8px;">
+    * Bu siyahı informativ xarakter daşıyır, brokerlərlə heç bir tərəfdaşlıq/reklam əlaqəsi yoxdur.
+    Hər brokerin öz riskləri var — investisiya etməzdən əvvəl müstəqil araşdırma aparın.
+  </p>
+
+  <section class="section-head">
+    <p class="eyebrow">TEZ-TEZ VERİLƏN SUALLAR</p>
+    <h2>Qərar verməzdən əvvəl</h2>
+  </section>
+  <section class="faq-grid">
+    <article class="faq-item">
+      <h4>Real pulla avtomatik ticarət edirmi?</h4>
+      <p>Xeyr. Sistem defolt olaraq PAPER (simulyasiya) rejimindədir. Real/DEMO icra yalnız açıq şəkildə aktivləşdirilərsə mümkündür.</p>
+    </article>
+    <article class="faq-item">
+      <h4>Nəticələr zəmanətlidirmi?</h4>
+      <p>Xeyr — bu, texniki avtomasiya vasitəsidir, investisiya məsləhəti deyil. Bazar riski həmişə istifadəçinin öhdəsindədir.</p>
+    </article>
+    <article class="faq-item">
+      <h4>Xəbərlər necə yoxlanılır?</h4>
+      <p>Hər AI təhlili qaralama kimi yaranır və yalnız insan Telegram-da təsdiqləyəndə (`/paylas`) dərc olunur.</p>
+    </article>
+    <article class="faq-item">
+      <h4>Öz strategiyamı əlavə edə bilərəmmi?</h4>
+      <p>Bəli — API açıq və sənədləşdirilib (`/docs`), Biznes planda xüsusi strategiya inteqrasiyası dəstəklənir.</p>
+    </article>
+  </section>
+
+  <section class="cta-banner">
+    <h2>Hazırsınızmı?</h2>
+    <p>PAPER rejimdə heç bir risk olmadan indi sınayın, sualınız olsa birbaşa yazın.</p>
+    <a href="/" class="btn btn-solid">İdarə panelini aç</a>
+  </section>
+
+{% endblock %}
