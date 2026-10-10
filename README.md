@@ -4,6 +4,8 @@
 
 🇦🇿 [Azərbaycan dilində](README.az.md)
 
+![Bot Control Center — live dashboard in PAPER mode](docs/screenshots/dashboard.jpg)
+
 The project combines three pieces:
 
 - **n8n** for automation: news ingestion, LLM analysis, Telegram approval.
